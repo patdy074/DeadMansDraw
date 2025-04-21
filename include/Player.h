@@ -1,45 +1,52 @@
-#ifndef PLAYER_H
+﻿#ifndef PLAYER_H
 #define PLAYER_H
 
 #include "Card.h"
+#include "Game.h"
 #include <string>
 #include <vector>
 #include <memory>
 
 namespace dmd {
 
+    class Game;
+
     class Player {
     public:
-        Player(const std::string& name);
+        Player(); // Assigns a random name to the player
 
-        // Add a drawn card to the play area
-        void addToPlayArea(std::shared_ptr<Card> card);
+        void addToPlayArea(std::shared_ptr<Card> card); // Adds a card to the player's temporary play area
+        void addToBank(std::shared_ptr<Card> card);     // Adds a card directly to the player's bank (used in bonuses)
 
-        // Bank all cards from playArea into bank
-        void bankCards();
+        bool isBust() const; // Returns true if the play area contains duplicate card suits
 
-        // Check if player has drawn a duplicate suit (bust)
-        bool isBust() const;
+        void discardPlayArea(); // Discards all cards from play area (used when busting)
 
-        // Calculate the score based on highest card per suit in the bank
-        int score() const;
+        void bankCards(Game& game); // Transfers cards from play area to bank (includes Chest+Key logic)
 
-        // Clear playArea (used on bust)
-        void discardPlayArea();
+        int score() const; // Calculates score based on the highest card of each suit in the bank
+        std::string getName() const; // Returns the player’s name
 
-        // Print cards in playArea (debug/display)
-        void printPlayArea() const;
+        void printPlayArea() const; // Prints all cards in the play area
+        void printBank() const;     // Prints all cards in the bank with score
+        void printCardGroups(const std::vector<std::shared_ptr<Card>>& cards) const; // Helper to group & sort cards when printing
 
-        // Print cards in bank (debug/display)
-        void printBank() const;
+        std::shared_ptr<Card> stealTopBankCard(); // Allows opponent to steal the highest value card from one suit in the bank
+        bool discardTopBankCard();                // Discards the top card from one suit in the bank
 
-        // Getter
-        std::string getName() const;
+        std::shared_ptr<Card> getTopCardOfSuit(CardType type); // Finds the highest value card of a given suit in the bank
+        bool removeCardFromBank(const std::shared_ptr<Card>& card); // Removes a specific card from the bank if it exists
+
+        std::vector<std::shared_ptr<Card>>& getPlayArea(); // Grants access to modify play area externally (e.g., from Game or Card)
+        std::vector<std::shared_ptr<Card>>& getBank();      // Grants access to modify bank externally
+
+        void bankCrads(Game& game); // ⚠️ Typo: should be bankCards(), may be duplicate or unused
+
 
     private:
-        std::string _name;
-        std::vector<std::shared_ptr<Card>> _bank;
-        std::vector<std::shared_ptr<Card>> _playArea;
+        std::string _name; // The player's randomly assigned name
+        std::vector<std::shared_ptr<Card>> _playArea; // Cards drawn this turn (reset if bust)
+        std::vector<std::shared_ptr<Card>> _bank;     // Safe, banked cards used for scoring
     };
 
 } // namespace dmd

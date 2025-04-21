@@ -4,29 +4,43 @@
 #include "CardType.h"
 #include <string>
 
-namespace dmd { // Place all your code in a project namespace
+namespace dmd {
 
-    
+    class Game;
+    class Player;
+
+    /* Base class for all cards in the game.
+     This is an abstract class — each card type like Sword, Map, etc. inherits from this.
+     */
     class Card {
     public:
-        // Constructor: initialize value and type
+        
         Card(int value, CardType type);
 
-        // Virtual destructor (important for base classes)
+       
+        //Even though nothing is destroyed here, it's good practice in base classes.
+        
         virtual ~Card();
 
-        // Getters for card type and value (do not modify the object)
-        CardType getType() const;
-        int getValue() const;
-
         
-        virtual void play(/*Game &game, Player &player*/) = 0;
+        //Each card will define its own effect during play.
+        virtual void play(Game& game, Player& player) = 0;
 
+       
+        //String representation like "Sword(6)" — useful for printing.
         virtual std::string str() const = 0;
 
+        /*Optional effect for when a card is banked(used in Chest + Key logic).
+         Only some cards override this — most don’t need to.
+         */
+        virtual void willAddToBank(Game& game, Player& player) {}
+
+        int getValue() const;
+        CardType getType() const;
+
     protected:
-        int _value;
-        CardType _type;
+        int _value;      // The card's numeric value
+        CardType _type;  // The suit/type of the card
     };
 
 } // namespace dmd

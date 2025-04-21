@@ -1,5 +1,6 @@
 #include "Game.h"
 #include "Player.h"
+#include "DeckFactory.h"
 
 #include <iostream>
 #include <cstdlib>
@@ -16,28 +17,30 @@ namespace dmd {
         initializeDeck();
     }
 
+    // Create and assign two player objects
     void Game::initializePlayers() {
-        // Create two players using shared_ptr
         _players[0] = std::make_shared<Player>();
         _players[1] = std::make_shared<Player>();
     }
 
+    // Generate and shuffle the full deck using DeckFactory
     void Game::initializeDeck() {
+        _deck = DeckFactory::createShuffledDeck();
     }
 
-    void Game::shuffleDeck() {
-        // Unused: shuffle is handled in DeckFactory
-    }
+    // Unused placeholder function (required by assignment but logic handled by DeckFactory)
+    void Game::shuffleDeck() {}
 
+    // Main game loop that runs until max turns or empty deck
     void Game::startGame() {
         std::cout << "Starting Dead Man's Draw++!\n\n";
 
         int totalTurns = 0;
         const int maxTurns = 20;
 
-        // Game loop: up to 20 turns or until deck is empty
         while (!isGameOver() && totalTurns < maxTurns) {
-            std::cout << "--- Round " << _round << ", Turn " << _turn << " ---\n";
+            std::cout << "--- Round " << _round
+                << ", Turn " << _turn << " ---\n";
 
             auto currentPlayer = _players[_currentPlayerIndex];
             std::cout << currentPlayer->getName() << "'s turn.\n";
@@ -49,37 +52,41 @@ namespace dmd {
             while (!turnOver && !isBusted) {
                 std::shared_ptr<Card> drawnCard = drawCard();
 
+                // If deck is empty, end game immediately
                 if (!drawnCard) {
                     std::cout << "The deck is empty. Ending game early...\n";
                     endGame();
                     return;
                 }
 
-                std::cout << currentPlayer->getName() << " draws a " << drawnCard->str() << "\n";
+                std::cout << currentPlayer->getName()
+                    << " draws a " << drawnCard->str() << "\n";
 
                 currentPlayer->addToPlayArea(drawnCard);
 
-                // Check for bust *before* triggering the card's ability
+                // Check for bust BEFORE triggering the card's effect
                 if (currentPlayer->isBust()) {
-                    std::cout << "BUST! " << currentPlayer->getName() << " loses all cards in play area.\n\n";
+                    std::cout << "BUST! " << currentPlayer->getName()
+                        << " loses all cards in play area.\n\n";
                     moveToDiscard(currentPlayer->getPlayArea());
                     currentPlayer->discardPlayArea();
                     isBusted = true;
                     break;
                 }
 
-                // Execute the card’s special effect
+                // Activate the drawn card's ability
                 drawnCard->play(*this, *currentPlayer);
 
                 currentPlayer->printPlayArea();
 
-                std::cout << std::endl; // spacing before prompt
+                // Spacing before prompt for clarity
+                std::cout << std::endl;
 
                 std::string input;
                 std::cout << "Draw again? (y/n): ";
                 std::getline(std::cin, input);
 
-                // Player chose to stop and bank their cards
+                // If player chooses not to draw again, bank the cards
                 if (input != "y" && input != "Y") {
                     std::cout << "Cards banked successfully.\n";
                     currentPlayer->bankCards(*this);
@@ -88,61 +95,66 @@ namespace dmd {
                 }
             }
 
-            switchPlayer(); // hand over to other player
+            // Move to next player and increment round/turn counters
+            switchPlayer();
             ++_round;
             ++_turn;
             ++totalTurns;
             std::cout << "\n";
         }
 
-        endGame(); // Triggered after last turn or empty deck
+        endGame();
     }
 
+    // Draw a card from the back of the deck
     std::shared_ptr<Card> Game::drawCard() {
         if (_deck.empty()) {
             return nullptr;
         }
 
-        // Draw card from top (back of vector)
         auto card = _deck.back();
         _deck.pop_back();
         return card;
     }
 
+    // Toggle between player 0 and player 1
     void Game::switchPlayer() {
-        // Toggle between player 0 and 1
         _currentPlayerIndex = 1 - _currentPlayerIndex;
     }
 
+    // Game ends when the deck is empty
     bool Game::isGameOver() const {
-        return _deck.empty(); // 20-turn limit checked separately
+        return _deck.empty();
     }
 
+    // Print final scores for both players
     void Game::printFinalScores() const {
         std::cout << "\n=== Final Scores ===\n";
         for (int i = 0; i < 2; ++i) {
-            std::cout << _players[i]->getName() << ": " << _players[i]->score() << "\n";
+            std::cout << _players[i]->getName() << ": "
+                << _players[i]->score() << "\n";
         }
     }
 
+    // Move multiple cards to the discard pile
     void Game::moveToDiscard(const std::vector<std::shared_ptr<Card>>& cards) {
-        // Move a full collection of cards to the discard pile
         for (const auto& card : cards) {
             _discardPile.push_back(card);
         }
     }
 
+    // Return the non-active player (used by Sword/Cannon effects)
     std::shared_ptr<Player> Game::getOpponent() const {
-        // Get the non-active player
         return _players[(_currentPlayerIndex + 1) % 2];
     }
 
+    // Give access to discard pile (used in Chest + Key or Map logic)
     std::vector<std::shared_ptr<Card>>& Game::getDiscardPile() {
         return _discardPile;
     }
 
+    // Get the other player based on current Player pointer (used in card logic)
     Player* Game::getOpponent(Player* current) {
-        // Return pointer to the other player
         if (_players[0].get() == current) {
             return _players[1].get();
         }
@@ -151,12 +163,11 @@ namespace dmd {
         }
     }
 
-    void Game::moveToDiscard(std::shared_ptr<Card> card) {
-        // Unused overload; some cards may push individual cards directly
-    }
+    // Unused placeholder for single-card discard (not required by spec)
+    void Game::moveToDiscard(std::shared_ptr<Card> card) {}
 
+    // Used by Oracle to preview the next card
     std::shared_ptr<dmd::Card> dmd::Game::peekTopCard() const {
-        // OracleCard uses this to look at the next card
         if (!_deck.empty()) {
             return _deck.back();
         }
@@ -165,6 +176,7 @@ namespace dmd {
         }
     }
 
+    // End-of-game logic with final score comparison and winner announcement
     void Game::endGame() {
         std::cout << "=== Game Over ===\n";
 
