@@ -1,5 +1,8 @@
 #include "OracleCard.h"
+#include "Game.h"       // Required to use Game methods
+#include "Card.h"       // Required for std::shared_ptr<Card>
 #include <iostream>
+#include <memory>
 
 namespace dmd {
 
@@ -7,14 +10,20 @@ namespace dmd {
         : Card(value, CardType::Oracle) {
     }
 
-    void OracleCard::play(/*Game &game, Player &player*/) {
-        // This would allow the player to peek at the next card
-        // The actual logic will go in the Game class
-        std::cout << "[OracleCard effect triggered - Reveal next card in deck]\n";
+    void OracleCard::play(Game& game, Player& player) {
+        // Try to peek at the next card in the deck
+        std::shared_ptr<Card> peekCard = game.peekTopCard();  // <- must exist in Game class
+
+        if (peekCard) {
+            std::cout << "The Oracle sees a " << peekCard->str() << "\n";
+        }
+        else {
+            std::cout << "The Oracle sees nothing. The deck is empty.\n";
+        }
     }
 
     std::string OracleCard::str() const {
-        return "Oracle (" + std::to_string(getValue()) + ")";
+        return "Oracle(" + std::to_string(getValue()) + ")";
     }
 
 } // namespace dmd

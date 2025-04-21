@@ -2,16 +2,20 @@
 #define ORACLECARD_H
 
 #include "Card.h"
-#include <memory>
 
 namespace dmd {
 
-
+    /* The Oracle allows the player to peek at the top card of the deck
+     before deciding to draw again. Its logic is implemented in play().
+     */
     class OracleCard : public Card {
     public:
         explicit OracleCard(int value);
 
-        void play(/*Game &game, Player &player*/) override;
+        //Executes the Oracle's effect — peek at the top card of the deck.
+        void play(Game& game, Player& player) override;
+
+       
         std::string str() const override;
     };
 
