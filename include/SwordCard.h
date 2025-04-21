@@ -2,16 +2,18 @@
 #define SWORDCARD_H
 
 #include "Card.h"
-#include <memory>
 
 namespace dmd {
 
-
+    //A SwordCard allows the player to steal a card from the opponent's bank.
     class SwordCard : public Card {
     public:
-        SwordCard(int value);
+       //Constructs a SwordCard with a specific point value.
+         explicit SwordCard(int value);
 
-        void play(/*Game &game, Player &player*/) override;
+       //Steals the highest card of a chosen suit from the opponent's bank
+        void play(Game& game, Player& player) override;
+
         std::string str() const override;
     };
 
