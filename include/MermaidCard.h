@@ -2,15 +2,18 @@
 #define MERMAIDCARD_H
 
 #include "Card.h"
-#include <memory>
 
 namespace dmd {
 
+    /* Mermaid cards have no special ability when played,
+     but they tend to have higher point values for scoring.
+     */
     class MermaidCard : public Card {
     public:
         explicit MermaidCard(int value);
 
-        void play(/*Game &game, Player &player*/) override;
+        void play(Game& game, Player& player) override;
+
         std::string str() const override;
     };
 

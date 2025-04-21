@@ -3,17 +3,19 @@
 
 namespace dmd {
 
+    // Constructor: sets the value and identifies this card as a Mermaid type
     MermaidCard::MermaidCard(int value)
         : Card(value, CardType::Mermaid) {
     }
 
-    void MermaidCard::play(/*Game &game, Player &player*/) {
-        // Mermaid bonus scoring is calculated during final scoring, not here
-        std::cout << "[MermaidCard effect triggered - Bonus scoring applied later if applicable]\n";
+    // Mermaids have no special ability when played, but are worth more points when banked
+    void MermaidCard::play(Game& game, Player& player) {
+        std::cout << "No effect but Mermaids are worth more.\n";
     }
 
+    // Returns a display-friendly string like "Mermaid(6)"
     std::string MermaidCard::str() const {
-        return "Mermaid (" + std::to_string(getValue()) + ")";
+        return "Mermaid(" + std::to_string(getValue()) + ")";
     }
 
 } // namespace dmd
